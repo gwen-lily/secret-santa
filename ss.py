@@ -1,4 +1,3 @@
-import tkinter.filedialog as fd
 import os
 from random import sample
 from typing import List
@@ -6,7 +5,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-import sys
 import argparse
 
 
