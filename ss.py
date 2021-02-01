@@ -6,17 +6,25 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 import argparse
+import pathlib
+import pandas as pd
+import ftfy
+import demoji
+
+RSN_KEY = r'What is your RSN?'
+REQUEST_KEY = r'What do you want for Christmas?'
 
 
 class Person:
 
-	def __init__(self, name: str, dirname: str, gifts: int, code_length: int):
+	def __init__(self, name: str, dirname: str, gifts: int, code_length: int, wants: str):
 		self.name = name
 		self.filepath = os.path.join(os.getcwd(), dirname, ''.join(['ss_', self.name, '.txt']))
 		self.targets = []
 		self.targeted = 0
 		self.gifts = gifts
 		self.code = self.name[:code_length]
+		self.wants = wants
 
 	def can_pick(self) -> bool:
 		return len(self.targets) < self.gifts
@@ -28,7 +36,7 @@ class Person:
 		self.targeted += 1
 
 
-def main(participants: List[str], args: argparse.Namespace):
+def main(participants: List[str], args: argparse.Namespace, part_df: pd.DataFrame):
 	now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 	dirname = ''.join(['ss_', now])
 	log = not args.no_log
@@ -42,7 +50,8 @@ def main(participants: List[str], args: argparse.Namespace):
 	while True:
 		try:
 			for p in participants:
-				participants_dict[p] = Person(p, dirname, args.gifts, code_length)
+				p_wants = part_df.loc[part_df[RSN_KEY] == p][REQUEST_KEY].values[0]
+				participants_dict[p] = Person(p, dirname, args.gifts, code_length, p_wants)
 
 			for participant_name in participants:
 				P = participants_dict[participant_name]
@@ -73,6 +82,7 @@ def main(participants: List[str], args: argparse.Namespace):
 
 			with open(P.filepath, 'w') as f:
 				for t in P.targets:
+					T = participants_dict[t]
 					cohorts = []
 
 					for cohort_name in participants:
@@ -80,7 +90,15 @@ def main(participants: List[str], args: argparse.Namespace):
 						if not cohort_name == participant_name and t in participants_dict[cohort_name].targets:
 							cohorts.append(cohort_name)
 
-					f.write(''.join(['You & ', ', '.join(cohorts), ' have ', t, '\n']))
+					try:
+						s = ''.join(['You', ' & '*(len(cohorts) > 0), ', '.join(cohorts), ' have ', t,
+						             bool(T.wants)*', who wants: ', T.wants, '\n'])
+						f.write(s)
+
+					except UnicodeEncodeError as E:
+						s = demoji.replace_with_desc(s)
+						f.write(s)
+
 
 	if args.graph:
 		plt.axes()
@@ -177,20 +195,27 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 	try:
-		assert os.path.exists(args.file)
+		participants_filepath = pathlib.Path(args.file)
+		assert participants_filepath.exists()
+		assert participants_filepath.suffix == '.csv'
 
 	except AssertionError as E:
-		print(''.join(['The file: ', args.file, ' does not exist in this directory']))
+		print(''.join(['The file: ', args.file, ' does not exist in this directory or it\'s not a csv']))
 		raise E
 
-	participants = []
+	participants_df = pd.read_csv(filepath_or_buffer=participants_filepath,
+	                              sep=',',
+	                              )
+	participants_df[RSN_KEY] = [ftfy.fix_encoding(x) for x in participants_df[RSN_KEY]]
+	participants_df[REQUEST_KEY] = [ftfy.fix_encoding(x) for x in participants_df[REQUEST_KEY]]
 
-	with open(args.file, 'r') as f:
-		sanitized_text = f.read().strip().replace('\t', '\n').splitlines()
+	participants = list(participants_df[RSN_KEY].values)
 
-		for p in sanitized_text:
-			participants.append(p)
+	# else:
+	# 	with open(args.file, 'r') as f:
+	# 		sanitized_text = f.read().strip().replace('\t', '\n').splitlines()
+	#
+	# 		for p in sanitized_text:
+	# 			participants.append(p)
 
-	main(participants, args)
-
-
+	main(participants, args, participants_df)

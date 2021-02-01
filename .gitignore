@@ -32,11 +32,7 @@ $RECYCLE.BIN/
 
 .idea
 venv
-sslist2019
-sslist2020
-fucked_data.txt
-sslist2018.txt
-sslist2019.txt
-sslist2020.txt
-sslist2020 arabi.txt
-
+*.txt
+sslist*
+*.csv
+*.zip
