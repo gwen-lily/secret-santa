@@ -1,4 +1,3 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows
 
@@ -31,8 +30,11 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/windows
 
 .idea
-venv
+.venv
 *.txt
 sslist*
 *.csv
 *.zip
+__pycache__
+*.egg-info
+*.~lock*

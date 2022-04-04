@@ -1,0 +1,13 @@
+[FORMAT]
+max-line-length=79
+
+# Regexp for a line that is allowed to be longer than the limit.
+# ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+
+
+[SIMILARITIES]
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=no
+good-names=i,j,x,y,id,g,k,v,tl,mh,s,p
