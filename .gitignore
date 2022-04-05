@@ -38,3 +38,4 @@ sslist*
 __pycache__
 *.egg-info
 *.~lock*
+*.png
